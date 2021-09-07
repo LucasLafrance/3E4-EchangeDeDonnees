@@ -1,7 +1,20 @@
 import express from "express";
 import dayjs from "dayjs";
 
+import methodMiddlewares from "./middlewares/method.js"
+import planetsRoutes from "./routes/planets.routes.js";
+import errorsMiddlewares from "./middlewares/errors.js"
+
 const app = express();
+
+app.use(methodMiddlewares);
+app.use(planetsRoutes);
+
+//app.get
+//app.get
+//app.get
+
+
 
 
 app.get("/premiere", (req, res)=>{
@@ -26,7 +39,7 @@ app.get("/date", (req, res) =>{
 // maths/produit
 // maths/quotient
 // maths/reste
-
+// ceci est une route.
 app.get("/maths/:operation", (req, res)=>{
 
     const operation = req.params.operation;
@@ -69,4 +82,6 @@ res.send(`<strong>${result}`); // est la même chose que la ligne 22
 
 
 });
+
+app.use(errorsMiddlewares);
 export default app;
