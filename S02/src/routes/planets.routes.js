@@ -1,8 +1,11 @@
 import express from "express";
-import PLANETS from "../data/planets.js"; // TOUTES les planètes sont dans la variable.
-import HttpError  from "http-errors";
-import httpStatus from "http-status";
 
+import HttpError  from "http-errors";
+
+import HttpStatus from "http-status";
+import planets from "../data/planets.js";
+
+import PLANETS from "../data/planets.js"; // TOUTES les planètes sont dans la variable.
 
 const router = express.Router();
 class PlanetsRoutes
@@ -11,16 +14,30 @@ class PlanetsRoutes
     constructor()
     {
      // Définition des routes pour la ressource planet.
-        router.get("/planets", this.getAll); // Retrieve (retrouve ) toutes les planètes
-        router.get("/planets/:idPlanet", this.getOne); // Retrieve(retrouve) une planetes
-        router.post("/planets", this.post);
+        router.get("/", this.getAll); // Retrieve (retrouve ) toutes les planètes
+        router.get("/:idPlanet", this.getOne); // Retrieve(retrouve) une planetes
+        router.post("/", this.post);// Pour create
+        router.delete("/:idPlanet", this.deleteOne); //delete
+        router.patch("/:idPlanet", this.patchOne); // Update
+        router.put("/:idPlanet", this.putOne); // update
     }
         getAll(req, res, next)
         {
-             res.status(200);
+             res.status(HttpStatus.OK);
              res.set("Content-Type", " application/json");
 
              res.send(PLANETS);
+
+        }
+        patchOne(req,res,next)
+        {
+            return next(HttpError.NotImplemented());
+
+        }
+        putOne(req,res,next)
+        {
+
+          return next(HttpError.NotImplemented());
 
         }
 
@@ -34,12 +51,12 @@ class PlanetsRoutes
 
             if(planet == undefined)
             {
-               return next(HttpError.NotFound(`Votre planète au id suivant: ${idPlanet} n'existe pas `))
+               return next(HttpError.NotFound(`Votre planète au id suivant: ${idPlanet} n'existe pas `));
             }
             else
             {
 
-              res.status(200);
+              res.status(HttpStatus.OK);
               res.json(planet); // ça fait le content type et le send  
             }
             
@@ -51,8 +68,44 @@ class PlanetsRoutes
 
         post(req, res, next)
         {
+          
+          const newPlanet = req.body;
 
-            
+          const planet = PLANETS.find(p => p.id == newPlanet.id); // find retourne le premier élément qu'il trouve 
+          if(planet)
+          {
+            return next(HttpError.Conflict(`Une planète avec l'identifiant ${newPlanet.id} est déjà présente.`));// J'ai un doublon == Error
+          } 
+          else
+          {
+              PLANETS.push(newPlanet);  // ajouter la requête dans le tableau si elle correspond
+              res.status(HttpStatus.CREATED);//201
+              res.json(newPlanet);
+          }  
+          
+
+          
+
+         
+        }
+
+        deleteOne(req,res,next)
+        {
+          const idPlanet = req.params.idPlanet;
+
+          const index = PLANETS.findIndex(p => p.id == idPlanet);
+          if(index === -1)
+          {
+            return next(HttpError.NotFound(`Votre planète au id suivant: ${idPlanet} n'existe pas `));
+          }
+          else
+          {
+              PLANETS.splice(index, 1);
+              res.status(httpStatus.NO_CONTENT).end();
+
+          }
+
+
         }
 }
 
