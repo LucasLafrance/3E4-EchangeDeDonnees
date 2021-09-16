@@ -1,11 +1,10 @@
 import express from "express";
-
 import HttpError  from "http-errors";
-
+import httpStatus from "http-status";
 import HttpStatus from "http-status";
 import planets from "../data/planets.js";
-
 import PLANETS from "../data/planets.js"; // TOUTES les planètes sont dans la variable.
+import planetsRepository from "../repositories/planets.repository.js";
 
 const router = express.Router();
 class PlanetsRoutes
@@ -21,12 +20,54 @@ class PlanetsRoutes
         router.patch("/:idPlanet", this.patchOne); // Update
         router.put("/:idPlanet", this.putOne); // update
     }
-        getAll(req, res, next)
+     async getOne(req,res, next)
         {
-             res.status(HttpStatus.OK);
-             res.set("Content-Type", " application/json");
+            const idPlanet = req.params.idPlanet;
+          try
+          {
 
-             res.send(PLANETS);
+              //TODO: Voir dans la BD
+              const planet = await planetsRepository.retrieveById(idPlanet);
+
+              if(planet == undefined)
+              {
+                return next(HttpError.NotFound(`Votre planète au id suivant: ${idPlanet} n'existe pas `));
+              }
+              else
+              {
+
+                res.status(HttpStatus.OK);
+                res.json(planet); // ça fait le content type et le send  
+              }
+          }
+          catch(err)
+          {
+
+            return next(err);
+
+          }
+
+            
+        }
+         async getAll(req, res, next)
+        {
+
+            const filter = {};
+            if(req.query.explorer)
+            {
+                filter.discoveredBy = req.query.explorer;
+            }
+
+             try 
+             {
+               
+                const planets = await planetsRepository.retrieveALL(filter)
+                res.status(httpStatus.OK).json(planets); // ou  res.status(200).json(planets);
+             } 
+             catch (err) 
+             {
+               return next(err)
+             }
 
         }
         patchOne(req,res,next)
@@ -41,30 +82,7 @@ class PlanetsRoutes
 
         }
 
-        getOne(req,res, next)
-        {
-            const idPlanet = req.params.idPlanet;
-            //1.La planete existe pas = 200
-            const planet = PLANETS.find(p => p.id ==idPlanet); // find retrouve le premier élément qu'il trouve
-            console.log(planet)
-
-
-            if(planet == undefined)
-            {
-               return next(HttpError.NotFound(`Votre planète au id suivant: ${idPlanet} n'existe pas `));
-            }
-            else
-            {
-
-              res.status(HttpStatus.OK);
-              res.json(planet); // ça fait le content type et le send  
-            }
-            
-
-             //2.La planete existe pas = 404
-
-            
-        }
+        
 
         post(req, res, next)
         {

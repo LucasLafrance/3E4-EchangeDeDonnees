@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const planetSchema = mongoose.Schema({
 
     name: {type:String, unique:true, required:true},
-    discorveredBy:{type:String, required:true, index:true},
-    discorveryDate:Date,
+    discoveredBy:{type:String, required:true, index:true},
+    discoveryDate:Date,
     temperature:Number,
     satellites:[String],
     position:{
