@@ -2,6 +2,7 @@ import express from "express";
 import HttpError  from "http-errors";
 import httpStatus from "http-status";
 import HttpStatus from "http-status";
+import  Mongoose  from "mongoose";
 import planets from "../data/planets.js";
 import PLANETS from "../data/planets.js"; // TOUTES les planètes sont dans la variable.
 import planetsRepository from "../repositories/planets.repository.js";
@@ -23,19 +24,42 @@ class PlanetsRoutes
      async getOne(req,res, next)
         {
             const idPlanet = req.params.idPlanet;
+            const transformOptions = {};
+            if(req.query.unit)
+             {
+                
+               if(req.query.unit === "c")
+                {
+                  transformOptions.unit = req.query.unit;
+                
+                
+                }
+              else
+                {
+                 return next(HttpError.BadRequest('Le paramètre doit avoir le paramètre c pour Celsius'));
+                
+                
+                }
+            }
           try
           {
 
               //TODO: Voir dans la BD
-              const planet = await planetsRepository.retrieveById(idPlanet);
+              let planet = await planetsRepository.retrieveById(idPlanet);
+              
 
+               
               if(planet == undefined)
               {
                 return next(HttpError.NotFound(`Votre planète au id suivant: ${idPlanet} n'existe pas `));
               }
               else
               {
-
+                
+                
+                  planet = planet.toObject({getters:true, vituals:false});
+                  planet = planetsRepository.transform(planet, transformOptions);
+    
                 res.status(HttpStatus.OK);
                 res.json(planet); // ça fait le content type et le send  
               }
@@ -51,17 +75,53 @@ class PlanetsRoutes
         }
          async getAll(req, res, next)
         {
-
+          //Critères pour la BD
             const filter = {};
             if(req.query.explorer)
             {
                 filter.discoveredBy = req.query.explorer;
+                
             }
+
+            const transformOptions = {};
+
+
+
+            //paramètre de transformation
+            if(req.query.unit)
+            {
+
+              if(req.query.unit === "c")
+              {
+                  transformOptions.unit = req.query.unit;
+
+
+              }
+              else
+              {
+                return next(HttpError.BadRequest('Le paramètre doit avoir le paramètre c pour Celsius'));
+
+
+              }
+            }
+
 
              try 
              {
                
-                const planets = await planetsRepository.retrieveALL(filter)
+                let planets = await planetsRepository.retrieveALL(filter)
+
+                // Je veux un nouveau tableau des planètes transformées.
+                //Map = une boucle
+                planets = planets.map(p => {
+                  p = p.toObject({getters:true, virtuals:false});
+                  p = planetsRepository.transform(p, transformOptions);
+                  return p;
+
+                }); //retourne un nouveau tableau
+
+
+
                 res.status(httpStatus.OK).json(planets); // ou  res.status(200).json(planets);
              } 
              catch (err) 
@@ -84,12 +144,30 @@ class PlanetsRoutes
 
         
 
-        post(req, res, next)
+        async post(req, res, next)//CREATE
         {
           
           const newPlanet = req.body;
+          // TODO:Validation rapide jusqu'à la semaine +/-8 
 
-          const planet = PLANETS.find(p => p.id == newPlanet.id); // find retourne le premier élément qu'il trouve 
+          try
+          {
+             let planetAdded = await planetsRepository.create(newPlanet); 
+             planetAdded = planetAdded.toObject({getters:true, virtuals:false});
+             planetAdded = planetsRepository.transform(planetAdded);
+             res.status(201).json(planetAdded)
+          }
+          catch
+          { 
+            return next(err);
+          }
+
+
+
+
+
+          // ajout dans un tableau
+         /* const planet = PLANETS.find(p => p.id == newPlanet.id); // find retourne le premier élément qu'il trouve 
           if(planet)
           {
             return next(HttpError.Conflict(`Une planète avec l'identifiant ${newPlanet.id} est déjà présente.`));// J'ai un doublon == Error
@@ -101,18 +179,45 @@ class PlanetsRoutes
               res.json(newPlanet);
           }  
           
-
+          */
           
 
          
         }
 
-        deleteOne(req,res,next)
+       async deleteOne(req,res,next)
         {
           const idPlanet = req.params.idPlanet;
 
-          const index = PLANETS.findIndex(p => p.id == idPlanet);
-          if(index === -1)
+          try
+          {
+            const deleteResult = await planetsRepository.delete(idPlanet);
+            console.log(deleteResult);
+            if(!deleteResult)
+            {
+              return next(HttpError.NotFound(`Votre planète au id suivant: ${idPlanet} n'existe pas `));
+            }
+            else
+            {
+               
+                res.status(204).end();
+
+            }
+
+          }
+          catch(err)
+          {
+
+            return next(err);
+
+          }
+
+          
+
+
+
+         // const index = PLANETS.findIndex(p => p.id == idPlanet);
+          /*if(index === -1)
           {
             return next(HttpError.NotFound(`Votre planète au id suivant: ${idPlanet} n'existe pas `));
           }
@@ -121,7 +226,7 @@ class PlanetsRoutes
               PLANETS.splice(index, 1);
               res.status(httpStatus.NO_CONTENT).end();
 
-          }
+          }*/
 
 
         }
