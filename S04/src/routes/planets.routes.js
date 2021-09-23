@@ -130,9 +130,26 @@ class PlanetsRoutes
              }
 
         }
-        patchOne(req,res,next)
+       async patchOne(req,res,next)
         {
-            return next(HttpError.NotImplemented());
+          const PlanetModif = req.body;
+            try
+            {
+              
+              let planet = await planetsRepository.update(req.params.idPlanet ,PlanetModif);
+              if(!planet)
+              {
+                return next(HttpError.NotFound(`Votre planète au id suivant: ${req.params.idPlanet} n'existe pas `));
+              }
+              planet = planet .toObject({getters:false, virtuals:false});
+              planet = planetsRepository.transform(planet);
+              res.status(200).json(planet);
+
+            }
+            catch(err)
+            {
+              return next(err);
+            }
 
         }
         putOne(req,res,next)
@@ -149,7 +166,10 @@ class PlanetsRoutes
           
           const newPlanet = req.body;
           // TODO:Validation rapide jusqu'à la semaine +/-8 
-
+            if(Object.keys(newPlanet).length === 0)
+            {
+              return next(HttpError.BadRequest('La planète ne peut pas être vide'));
+            }
           try
           {
              let planetAdded = await planetsRepository.create(newPlanet); 
@@ -157,7 +177,7 @@ class PlanetsRoutes
              planetAdded = planetsRepository.transform(planetAdded);
              res.status(201).json(planetAdded)
           }
-          catch
+          catch(err)
           { 
             return next(err);
           }

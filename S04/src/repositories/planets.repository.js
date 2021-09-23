@@ -1,5 +1,7 @@
 
 import Planet from "../models/planet.model.js";
+import objectToDotNotation from "../libs/objectToDotNotation.js";
+import dayjs from 'dayjs';
 
 const ZERO_KELVIN = -273.15;
 
@@ -47,6 +49,13 @@ class PlanetRepository
 
     }
 
+    update(idPlanet, PlanetModif)
+    {
+        const planetToDotNotation = objectToDotNotation(PlanetModif);
+        return Planet.findByIdAndUpdate(idPlanet, planetToDotNotation,  {new:true});
+
+
+    }
 
 
     transform(planet, transformOptions = {}) 
@@ -64,12 +73,16 @@ class PlanetRepository
 
         }
         
+        planet.discoveredDate = dayjs(planet.discoveredDate).format('YYYY-MM-DD');
+        planet.lightspeed = `${planet.position.x.toString(16)}@${planet.position.y.toString(16)}#${planet.position.z.toString(16)}`
         delete planet.__v;
 
         return planet;
 
 
     }
+
+    
 
     
 
