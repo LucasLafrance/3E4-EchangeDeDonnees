@@ -9,12 +9,29 @@
   
     text-align: center;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
-
+    background-color: #686868;
     
 
 }
-.nom-planet {
+.card-title {
 
     font-family: 'Nova Round', cursive;
     font-size: 1.5em;
+}
+a:link, a:visited{
+    color:greenyellow
+}
+body{
+    background-color: #303030;
+}
+.PageT
+{
+    font-family: 'Nova Round', cursive;
+    font-size: 50;
+    color:greenyellow
+}
+#imgIcon{
+
+    width: 220px;
+    height: auto;
 }
