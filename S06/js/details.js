@@ -14,8 +14,17 @@ const urlParams = {};
 $(document).ready(() =>{
 
 getPlanet(urlParams.planet)
+$('#btnAddPortal').click(()=>{
+    addPortal();
+})
 
 });
+function addPortal(){
+    const position =$('#txtPosition').val();
+    const affinity =$('#cboAffinity').val();
+    console.log(position);
+    console.log(affinity);
+}
 
 async function getPlanet(url)
 {
@@ -33,10 +42,48 @@ async function getPlanet(url)
        $('#lblTemperature').html(planet.temperature)
        $('#lblPosition').html(`${planet.position.x.toFixed(3)}`)
        $('#lblPosition').html(`${planet.position.y.toFixed(3)}`)
+       $('#lblPosition').html(`${planet.position.z.toFixed(3)}`)
+        
+       let satellitesHtml ='';
+       planet.satellites.forEach(s => {
+            satellitesHtml+= `<li>${s}</li>`;
+
+       });
+       if (satellitesHtml === '')
+        {
+            satellitesHtml += 'Aucun Satellite'
+
+      
+
+       }
+      
+       
+
+       $('#Satellites').html(satellitesHtml);
+       displayPortal(planet.portals)
 
 }
-else{
-    console.log(response);
+
 }
+
+function displayPortal(portals)
+{
+    //1.Boucle ForEach
+
+        //2.Pour chaque portal un tr(ranger)
+
+        //3. dans chaque tr ==> 2 td un pour position et 1 pour affinitées
+    //4. Ajouter la chaine dans la page
+    let portalsHtml = "";
+    portals.forEach(p =>{ //1.
+
+        portalsHtml+= '<tr>' //2.
+
+            portalsHtml+=`<td class="PageT">${p.position}</td>`
+            portalsHtml+=`<td><img src="img/${p.affinity}.png" title=${p.affinity}/></td>`
+
+        portalsHtml+= '</tr>'
+    })
+    $('#portals tbody').html(portalsHtml);
 
 }
