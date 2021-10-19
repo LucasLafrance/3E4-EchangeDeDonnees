@@ -13,17 +13,87 @@ const urlParams = {};
 
 $(document).ready(() =>{
 
+
+
 getPlanet(urlParams.planet)
 $('#btnAddPortal').click(()=>{
     addPortal();
-})
+});
+
+$('#btnMiner').click(()=>{
+    minePlanet();
+});
 
 });
-function addPortal(){
-    const position =$('#txtPosition').val();
+async function minePlanet()
+{
+    //GET
+    const MINING_URL =`${urlParams.planet}/actions?type=mine` ;
+    const ELEMENT_IMG_URL = 'https://assets.andromia.science/elements';
+    const response = await axios.get(MINING_URL);
+    console.log(response);
+    if (response.status === 200) 
+    {
+        $('#extraction tbody').empty();
+        //tableau d'éléments
+        const minedElement = response.data;
+        minedElement.forEach(e => {
+            let elementHtml = '<tr>';
+
+            elementHtml += `<td> <img class="element" src="${ELEMENT_IMG_URL}/${e.element}.png"/>${e.element} </td>`
+            elementHtml += `<td>${e.quantity}</td>`
+
+            elementHtml += '</tr>'
+
+            $('#extraction tbody').append(elementHtml);
+        })
+        console.log(minedElement);
+
+    }
+    else
+    {
+        //message d'erreur sur console
+        console.log(response);
+    }
+}
+
+async function addPortal(){
+    const isPortalValid=document.getElementById('txtPosition').checkValidity();
+   
+
+    if (isPortalValid) 
+    {
+         const position =$('#txtPosition').val();
     const affinity =$('#cboAffinity').val();
-    console.log(position);
-    console.log(affinity);
+    
+    //Url qui permet de créer le portail
+    const CREATE_PORTAL_URL = `${urlParams.planet}/portals`;
+
+    const body ={
+        position: position,
+        affinity: affinity
+    }
+
+    const response = await axios.post(CREATE_PORTAL_URL, body)
+    if (response.status === 201)
+    {
+        const newPortal = response.data;
+        const portalHtml = displayAPortal(newPortal);
+
+        $('#portals tbody').append(portalHtml)
+    }
+    else
+    {
+        console.log(response);
+
+    }
+    
+    }
+   else
+    {
+        console.log("Portal dans un format invalide");
+    }
+    
 }
 
 async function getPlanet(url)
@@ -33,16 +103,16 @@ async function getPlanet(url)
         const planet = response.data;
         console.log(planet);
        //TODO: IMG
-       $("#imgIcon").attr('src', planet.icon)
+       $("#imgIcon").attr('src', planet.icon);
        //TODO: NAME
-       $('#lblName').html(planet.name)
+       $('#lblName').html(planet.name);
        //TODO: Decouvert par
-       $('#lblDiscoveredBy').html(planet.discoveredBy)
-       $('#lblDiscoveryDate').html(planet.discoveryDate)
-       $('#lblTemperature').html(planet.temperature)
-       $('#lblPosition').html(`${planet.position.x.toFixed(3)}`)
-       $('#lblPosition').html(`${planet.position.y.toFixed(3)}`)
-       $('#lblPosition').html(`${planet.position.z.toFixed(3)}`)
+       $('#lblDiscoveredBy').html(planet.discoveredBy);
+       $('#lblDiscoveryDate').html(planet.discoveryDate);
+       $('#lblTemperature').html(planet.temperature);
+       const position = `(${planet.position.x.toFixed(3)}; ${planet.position.y.toFixed(3)}; ${planet.position.z.toFixed(3)}); `
+       $('#lblPosition').html(position);
+       
         
        let satellitesHtml ='';
        planet.satellites.forEach(s => {
@@ -86,4 +156,16 @@ function displayPortal(portals)
     })
     $('#portals tbody').html(portalsHtml);
 
+}
+
+function displayAPortal(p)
+{
+    let portalsHtml = '';
+    portalsHtml+= '<tr>' //2.
+
+    portalsHtml+=`<td class="PageT">${p.position}</td>`
+    portalsHtml+=`<td><img src="img/${p.affinity}.png" title=${p.affinity}/></td>`
+
+    portalsHtml+= '</tr>'
+    return portalsHtml
 }
