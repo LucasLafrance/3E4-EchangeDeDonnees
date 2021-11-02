@@ -35,6 +35,10 @@ class PlanetRepository {
                 planet.temperature = parseFloat(planet.temperature.toFixed(2));
             }
         }
+        
+        //href de planet sans id
+        planet.href = `/planets/${planet._id}`;
+        delete planet._id;
 
         planet.discoveryDate = dayjs(planet.discoveryDate).format('YYYY-MM-DD');
 

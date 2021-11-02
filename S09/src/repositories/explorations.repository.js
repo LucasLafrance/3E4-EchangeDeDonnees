@@ -1,7 +1,17 @@
 import Exploration from '../models/exploration.model.js';
+import planetRepository from './planet.repository.js';
 
 class ExplorationsRepository {
     
+    retrieveALL(retrieveOptions)
+    {
+         const retrieveQuery = Exploration.find().skip(retrieveOptions.skip).limit(retrieveOptions.limit);
+         const countQuery = Exploration.countDocuments();
+
+         return Promise.all([retrieveQuery, countQuery]);
+
+    }
+
     retrieveById(idExploration, retrieveOptions)
     {
         const retrieveQuery =  Exploration.findById(idExploration);
@@ -17,11 +27,13 @@ class ExplorationsRepository {
        if(transformOptions.embed && transformOptions.embed.planet)
        {
          //?embed=planet
-
+         //exploration.planet => un objet complet
+            exploration.planet = planetRepository.transform(exploration.planet, transformOptions);
        }
        else
        {
            //Quand on ne veut pas la planet
+
             exploration.planet = { href: `/planets/${exploration.planet}`};
        }
          
@@ -35,6 +47,7 @@ class ExplorationsRepository {
         return exploration;
 
     }
+
 }
 
 export default new ExplorationsRepository();
