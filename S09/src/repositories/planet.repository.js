@@ -1,12 +1,22 @@
 import Planet from '../models/planet.model.js';
 import objectToDotNotation from '../libs/objectToDotNotation.js';
 import dayjs from 'dayjs';
+import explorationsRepository from './explorations.repository.js';
 
 const ZERO_KELVIN = -273.15;
 class PlanetRepository {
     
-    retrieveById(idPlanet) {
-        return Planet.findById(idPlanet);
+    retrieveById(idPlanet, retrieveOptions ={}) {
+        
+        const retrieveQuery=Planet.findById(idPlanet);
+
+        if(retrieveOptions.hasExplorations)
+        {
+            retrieveQuery.populate('explorations');
+        }
+
+        return retrieveQuery;
+
     }
 
     retrieveAll(filter) {
@@ -34,6 +44,16 @@ class PlanetRepository {
                 planet.temperature += ZERO_KELVIN;
                 planet.temperature = parseFloat(planet.temperature.toFixed(2));
             }
+
+            if(transformOptions.embed && transformOptions.embed.hasExplorations)
+            {
+                planet.hasExplorations = planet.map(e => {
+                    e =explorationsRepository.transform(e, transformOptions);
+                    return e;
+                });
+            }
+
+
         }
         
         //href de planet sans id

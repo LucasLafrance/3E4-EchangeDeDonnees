@@ -24,6 +24,8 @@ class ExplorationsRoutes {
         let [explorations, itemCount] = await explorationsRepository.retrieveALL(retrieveOptions);
         const pageCount = Math.ceil(itemCount/retrieveOptions.limit); 
        const hasNextPage = paginate.hasNextPages(req)(pageCount); // Une fonction qui retourne une fonction 
+       const pageArray = (paginate.getArrayPages(req))(3, pageCount, req.query.page);
+       console.log(pageArray);
                 
         explorations = explorations.map(e =>{
             e = e.toObject({getters:true, virtuals:false}); // permet de modifier l'objet
@@ -42,10 +44,29 @@ class ExplorationsRoutes {
                 totalDocuments: itemCount
             },
             _links:{
-
+                first:`/exploration?page=1&limit=${req.query.limit}`,
+                prev:pageArray[0].url,
+                self:pageArray[1].url,
+                next:pageArray[2].url,
+                last:`/exploration?page=${pageCount}&limit=${req.query.limit}`,
             },
             data:explorations
         };
+        if(req.query.page === 1)
+        {
+            delete response._links.prev;
+            response._links.self =pageArray[0].url;
+            response._links.next = pageArray[1].url;
+        }
+
+        if(!hasNextPage)
+        {
+            delete response._links.next;
+            response._links.prev =pageArray[1].url;
+            response._links.self = pageArray[2].url;
+
+        }
+
         
         res.status(200).json(response);
        } 
